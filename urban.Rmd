@@ -1,0 +1,92 @@
+---
+title: "urban"
+output: html_document
+date: "2025-04-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list = ls())
+
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+
+```
+
+```{r}
+urban_2 <- read.csv("urban.csv", fileEncoding='latin1',check.names=F)
+
+head(urban_2)
+```
+
+```{r}
+summary(urban_2)
+
+```
+
+
+```{r}
+urban_2$year <- as.factor(urban_2$year)
+urban_2$high.school <-as.factor(urban_2$high.school)
+
+```
+
+
+```{r}
+#does social engagement differ between students with an urban hs background (yes/no)?
+
+t_test_social <- t.test(social.total ~ high.school, data = urban_2)
+summary(t_test_social)
+
+t_test_academic <- t.test(academic.total ~ high.school, data = urban_2)
+summary(t_test_academic)
+
+
+```
+
+```{r}
+year_social <- aov(social.total ~ year, data = urban_2)
+summary(year_social)
+
+year_academic <- aov(academic.total ~ year, data = urban_2)
+summary(year_academic)
+
+```
+
+```{r}
+cor.test(
+  x = urban_2$academic.total,
+  y = urban_2$social.total, 
+  method = "pearson"
+)
+
+```
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(ggpubr)
+
+# Scatter plot with regression line and correlation info
+ggplot(urban_2, aes(x = academic.total, y = social.total)) +
+  geom_point(color = "#2C7BB6", alpha = 0.7, size = 3) +  # scatter points
+  geom_smooth(method = "lm", se = FALSE, color = "#D7191C", linetype = "dashed") +  # regression line
+  stat_cor(method = "pearson", 
+           aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), 
+           label.x = min(urban_2$academic.total), 
+           label.y = max(urban_2$social.total), 
+           size = 5) +  # add correlation and p-value
+  labs(
+    title = "Correlation Between Academic and Social Engagement",
+    x = "Academic Engagement (Total Score)",
+    y = "Social Engagement (Total Score)"
+  ) +
+  theme_minimal(base_size = 14)
+
+```

@@ -1,0 +1,418 @@
+---
+title: "Final_Urban_Influence"
+author: "Dawson Miller"
+output: html_document
+date: "2025-04-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+rm(list = ls())
+
+
+
+
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(ggpubr)
+```
+
+## Reading CSV File
+
+You can also embed plots, for example:
+
+```{r}
+urban <- read.csv("final_urban_data_2.csv")
+
+
+head(urban)
+```
+
+## Average engagement (School vs. Academic)
+
+```{r}
+
+
+# Prepare the data: long format
+urban_long <- urban %>%
+  mutate(Student = row_number()) %>%
+  select(Student, academic_engagement_total, social_engagement_total) %>%
+  pivot_longer(cols = -Student, names_to = "Engagement_Type", values_to = "Score")
+
+# Rename levels to clean them up
+urban_long$Engagement_Type <- recode(urban_long$Engagement_Type,
+                                     "academic_engagement_total" = "Academic",
+                                     "social_engagement_total" = "Social")
+
+# Plot it
+ggplot(urban_long, aes(x = Student, y = Score, color = Engagement_Type)) +
+  geom_point(size = 3, alpha = 0.8) +  # Use geom_line() instead for connected lines
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = c("Academic" = "#1f77b4", "Social" = "orange")) +
+  labs(title = "Student Engagement: Academic vs Social",
+       x = "Student",
+       y = "Engagement Score",
+       color = "Engagement Type") +
+  theme_pubr()
+
+ggsave("Scatter_Plot.png")
+
+```
+
+```{r}
+exclude_cols <- c("school_year", "friend_group", "in_person_time", "volunteer",
+                  "personal_growth", "home_or_college", "on_campus_job",
+                  "campus_jobs_total", "attend_class", "academic_engagement_total", "social_engagement_total")
+
+# Select only the relevant columns
+included_data <- urban %>%
+  select(-one_of(exclude_cols))
+
+# Compute averages
+engagement_averages <- included_data %>%
+  summarise(across(everything(), ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(cols = everything(), names_to = "Category", values_to = "Average")
+
+# Rename columns for cleaner plot labels and create the 'Engagement_Type' category
+engagement_averages <- engagement_averages %>%
+  mutate(Category = recode(Category,
+                           social_clubs     = "Social Clubs",
+                           religious_groups = "Religious Groups",
+                           diversity        = "Diversity & Inclusion",
+                           honors           = "Honors Program",
+                           res_life         = "Residence Life",
+                           study_groups     = "Study Groups",
+                           academic_clubs   = "Academic Clubs",
+                           cultural_events  = "Cultural Events",
+                           rec_im           = "Rec IM"),
+         Engagement_Type = case_when(
+           Category %in% c("Study Groups", "Academic Clubs", "Honors Program") ~ "Academic",
+           Category %in% c("Social Clubs", "Religious Groups", "Diversity & Inclusion", "Residence Life", "Cultural Events", "Rec IM") ~ "Social",
+           TRUE ~ NA_character_ # Handle any uncategorized items
+         ))
+
+# Plot with color based on Engagement_Type
+ggplot(engagement_averages, aes(x = reorder(Category, -Average), y = Average, fill = Engagement_Type)) +
+  geom_col() +
+  scale_fill_manual(values = c("Academic" = "#1f77b4", "Social" = "orange")) +
+  labs(title = "Average Engagement in Clubs & Extra Curriculars",
+       x = "Engagement Area",
+       y = "Average Score",
+       fill = "Engagement Type") + 
+  theme_pubr() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave("Bar_Graph.png")
+
+```
+
+### Chart of Average Engagement in Clubs & Extra Curricular Activities
+
+```{r}
+library(dplyr)
+library(knitr)
+
+exclude_cols <- c("school_year", "friend_group", "in_person_time", "volunteer",
+                  "personal_growth", "home_or_college", "on_campus_job",
+                  "campus_jobs_total", "attend_class", "academic_engagement_total", "social_engagement_total")
+
+# Select only the relevant columns
+included_data <- urban %>%
+  select(-one_of(exclude_cols))
+
+# Compute averages
+engagement_averages_table <- included_data %>%
+  summarise(across(everything(), ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(cols = everything(), names_to = "Category", values_to = "Average") %>%
+  mutate(Category = recode(Category,
+                           social_clubs     = "Social Clubs",
+                           religious_groups = "Religious Groups",
+                           diversity        = "Diversity & Inclusion",
+                           honors           = "Honors Program",
+                           res_life         = "Residence Life",
+                           study_groups     = "Study Groups",
+                           academic_clubs   = "Academic Clubs",
+                           cultural_events  = "Cultural Events",
+                           rec_im           = "Rec IM"
+  )) %>%
+  arrange(desc(Average)) # Arrange by average for better readability
+
+# Display the table using kable
+kable(engagement_averages_table, digits = 2, col.names = c("Engagement Area", "Average Score (1 - 5)"))
+
+
+```
+
+## School Year correlation to engagement
+
+```{r}
+
+
+#Group by school_year and calculate means
+grouped_data <- urban %>%
+  group_by(school_year) %>%
+  summarise(
+    social_engagement = mean(social_engagement_total, na.rm = TRUE),
+    academic_engagement = mean(academic_engagement_total, na.rm = TRUE)
+  )
+
+#Reshape to long format for ggplot
+long_data <- pivot_longer(grouped_data, 
+                          cols = c(social_engagement, academic_engagement), 
+                          names_to = "engagement_type", 
+                          values_to = "average_score")
+
+#  bar plot
+ggplot(long_data, aes(x = factor(school_year), y = average_score, fill = engagement_type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Average Social and Academic Engagement by School Year",
+    x = "School Year",
+    y = "Average Engagement Score",
+    fill = "Engagement Type"
+  ) +
+  scale_x_discrete(labels = c("1" = "Freshman", "2" = "Sophomore", "3" = "Junior", "4" = "Senior")) +
+  theme_minimal()
+
+
+```
+
+### Chart of Average Social and Academic Engagement by School Year
+
+```{r}
+library(knitr)
+
+
+
+# Rename rows for clarity
+grouped_data$school_year <- recode(grouped_data$school_year,
+                                   `1` = "Freshman",
+                                   `2` = "Sophomore",
+                                   `3` = "Junior",
+                                   `4` = "Senior")
+
+# Show table
+kable(grouped_data, digits = 2, col.names = c("School Year", "Social Engagement", "Academic Engagement"))
+
+```
+
+## Heat Map of Correlation between Clubs and Groups
+
+```{r}
+
+
+exclude_cols <- c("school_year", "friend_group", "in_person_time", "volunteer",
+                  "personal_growth", "home_or_college", "on_campus_job",
+                  "campus_jobs_total", "attend_class", "academic_engagement_total", "social_engagement_total")
+
+# Select only the relevant numerical engagement columns
+correlation_data <- urban %>%
+  select(-one_of(exclude_cols))
+
+# Calculate the correlation matrix
+correlation_matrix <- cor(correlation_data, use = "pairwise.complete.obs")
+
+# Convert the correlation matrix to a tidy data frame for ggplot2
+tidy_corr_matrix <- as.data.frame(correlation_matrix) %>%
+  mutate(Category1 = rownames(.)) %>%
+  pivot_longer(cols = -Category1, names_to = "Category2", values_to = "Correlation")
+
+# Rename categories for better labels (same as before)
+tidy_corr_matrix <- tidy_corr_matrix %>%
+  mutate(Category1 = recode(Category1,
+                           social_clubs     = "Social Clubs",
+                           religious_groups = "Religious Groups",
+                           diversity        = "Diversity & Inclusion",
+                           honors           = "Honors Program",
+                           res_life         = "Residence Life",
+                           study_groups     = "Study Groups",
+                           academic_clubs   = "Academic Clubs",
+                           cultural_events  = "Cultural Events",
+                           rec_im           = "Rec IM"),
+         Category2 = recode(Category2,
+                           social_clubs     = "Social Clubs",
+                           religious_groups = "Religious Groups",
+                           diversity        = "Diversity & Inclusion",
+                           honors           = "Honors Program",
+                           res_life         = "Residence Life",
+                           study_groups     = "Study Groups",
+                           academic_clubs   = "Academic Clubs",
+                           cultural_events  = "Cultural Events",
+                           rec_im           = "Rec IM"))
+
+# Create the heatmap
+
+ggplot(tidy_corr_matrix, aes(x = Category1, y = Category2, fill = Correlation)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white",
+                       midpoint = 0, limit = c(-1, 1), space = "Lab",
+                       name = "Correlation") +
+  theme_pubr() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        legend.position = "right",
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
+  coord_fixed() +  # Ensure cells are square
+  geom_text(aes(label = round(Correlation, 2)), color = "black", size = 3) +
+  ggtitle("Correlation Between Student Engagement Groups")
+
+
+
+
+ggsave("heat_map.png")
+```
+
+### Heat Map (Social vs Academic)
+
+[This heat-map will allow you to quickly identify which engagement areas tend to move together (positive correlation) or in opposite directions (negative correlation).]{.underline}
+
+-   Color intensity indicates the strength of the correlation (darker colors mean stronger correlations).
+-   Color hue indicates the direction of the correlation (red for positive, blue for negative).
+-   The numbers inside the tiles are the actual correlation coefficients.
+
+## T - Test Social Engagement
+
+```{r}
+# T-test: Social engagement by on-campus job
+t.test(social_engagement_total ~ on_campus_job, data = urban)
+
+```
+
+## T - Test Academic Engagement
+
+```{r}
+
+# Make on_campus_job into a binary factor (if it's not already)
+urban$on_campus_job <- as.factor(urban$on_campus_job)
+
+# Then run the t-test
+t.test(academic_engagement_total ~ on_campus_job, data = urban)
+
+```
+
+## Box Plot
+
+```{r}
+# Load necessary libraries
+
+
+# -----------------------------------------------
+# Academic Engagement by School Year
+ggplot(urban, aes(x = as.factor(school_year), y = academic_engagement_total)) +
+  geom_boxplot(fill = "#1f77b4", outlier.shape = NA) +
+  geom_jitter(color = "black", size = 0.8, alpha = 0.8, width = 0.2) +
+  labs(
+    title = "Academic Engagement Across School Year",
+    x = "School Year", 
+    y = "Academic Engagement"
+  ) +
+  theme_pubr() +
+  theme(plot.title = element_text(size = 13))
+
+ggsave("AE_Box.png")
+
+# -----------------------------------------------
+# Social Engagement by School Year
+ggplot(urban, aes(x = as.factor(school_year), y = social_engagement_total)) +
+  geom_boxplot(fill = "orange", outlier.shape = NA) +
+  geom_jitter(color = "black", size = 0.8, alpha = 0.8, width = 0.2) +
+  labs(
+    title = "Social Engagement Across School Year",
+    x = "School Year", 
+    y = "Social Engagement"
+  ) +
+  theme_pubr() +
+  theme(plot.title = element_text(size = 13))
+
+ggsave("SE_Box.png")
+
+# -----------------------------------------------
+# Combined Engagement Boxplot
+urban_long <- urban %>%
+  select(social_engagement_total, academic_engagement_total) %>%
+  rename(`Social Engagement` = social_engagement_total,
+         `Academic Engagement` = academic_engagement_total) %>%
+  pivot_longer(cols = everything(), names_to = "Engagement", values_to = "Score")
+
+ggplot(urban_long, aes(x = Engagement, y = Score, fill = Engagement)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "black", size = 1, alpha = 0.9, width = 0.2) +
+  scale_fill_manual(values = c("Academic Engagement" = "#1f77b4",  # Blue
+                               "Social Engagement" = "orange")) + # Orange
+  scale_y_continuous(limits = c(1, 5)) +
+  theme_pubr() +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 13),
+    axis.title.x = element_blank()
+  ) +
+  ggtitle("Engagement Boxplot: Social vs Academic") +
+  ylab("Score (1–5)")
+
+ggsave("Total_Box_Plot.png")
+
+```
+
+## Anova Multiple Analysis
+
+```{r}
+# ANOVA for academic engagement across school year
+cat("===== ANOVA: Academic Engagement Across School Year =====\n")
+anova_model <- aov(academic_engagement_total ~ as.factor(school_year), data = urban)
+print(summary(anova_model))
+
+# Spacer line
+cat("\n\n")
+
+# ANOVA for social engagement across school year
+cat("===== ANOVA: Social Engagement Across School Year =====\n")
+anova_model_social <- aov(social_engagement_total ~ as.factor(school_year), data = urban)
+print(summary(anova_model_social))
+
+
+
+
+```
+
+### ANOVA Results
+
+#### **Academic Engagement Across School Year**
+
+The ANOVA test examined whether there are significant differences in **academic engagement** across the freshman - senior school years. The output shows:
+
+-   **F(3, 27) = 0.903**,\
+-   **p = 0.453**
+
+This p-value is **greater than 0.05**, indicating that **there is no statistically significant difference** in academic engagement between the different school years. In other words, students across Freshman, Sophomore, Junior, and Senior years tend to report similar levels of academic engagement.
+
+#### **Social Engagement Across School Year**
+
+Similarly, the ANOVA test for **social engagement** yielded:
+
+-   **F(3, 27) = 0.69**,\
+-   **p = 0.566**
+
+Again, the p-value exceeds the typical threshold of 0.05, meaning there is **no significant difference in social engagement** across the school years. This suggests that students, regardless of class year, engage socially at roughly the same level.
+
+------------------------------------------------------------------------
+
+
+```{r}
+cor(urban)
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
