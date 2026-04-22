@@ -5,12 +5,12 @@ A research project investigating the impact of urban environments on socio-econo
 
 ## 👥 Research Team
 
-| Role | Name |
-|---|---|
-| Lead Researcher | Dawson Miller |
+| Role | Name | Email |
+|---|---|---|
+| Principal Investigator | Dawson Miller | dawsonrmiller03@gmail.com |
 
 **Institution:** Gordon College  
-**Status:** Completed (May 2026)
+**Status:** Completed (May 2025)
 
 ---
 
@@ -82,4 +82,4 @@ urban-influence-analysis/
 ---
 
 ## 📄 License
-Internal research project — Gordon College, 2026.
+Internal research project — Gordon College, 2025.
