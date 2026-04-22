@@ -41,6 +41,8 @@ Data insights are communicated through a multi-modal visualization suite:
 ---
 
 ## 📁 Repository Structure
+
+```
 urban-influence-analysis/
 │
 ├── Data/
@@ -62,6 +64,7 @@ urban-influence-analysis/
 │
 ├── .gitignore
 └── README.md
+```
 ---
 
 ## 🛠️ Technology Stack
