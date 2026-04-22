@@ -1,42 +1,85 @@
 # Urban Influence Analysis
-This repository contains the data, analysis scripts, and visualizations for a research project investigating urban influence factors. As the Lead Researcher, I developed this workflow to process raw urban datasets and generate statistical insights through R-based modeling.
+A research project investigating the impact of urban environments on socio-economic and environmental metrics through R-based statistical modeling and spatial visualization.
 
-# Project Overview
-The goal of this project was to analyze how urban environments impact specific socio-economic or environmental metrics. The analysis explores correlations through spatial data, heat maps, and comparative box plots.
+---
 
-# File Structure
-Analysis Scripts:
+## 👥 Research Team
 
-Final_Urban_Influence.Rmd: The primary R Markdown file containing the final statistical models and data processing.
+| Role | Name |
+|---|---|
+| Lead Researcher | Dawson Miller |
 
-urban.Rmd: Initial exploratory data analysis (EDA).
+**Institution:** Gordon College  
+**Status:** Completed (May 2026)
 
-Data:
+---
 
-urban.csv: Raw input data.
+## 📄 Project Overview
 
-final_urban_data.csv & final_urban_data_2.csv: Cleaned and transformed datasets used for the final models.
+The goal of this project was to analyze how specific urban factors influence environmental and socio-economic outcomes. By processing raw urban datasets, this workflow identifies key correlations and trends using spatial data, distribution analysis, and comparative modeling.
 
-Visualizations (Outputs):
+**Key Objectives:**
+* Process and clean raw urban datasets for statistical reliability.
+* Explore correlations between urban density and target metrics.
+* Visualize findings through spatial heat maps and comparative box plots.
 
-heat_map.png: Spatial or correlation density.
+---
 
-Scatter_Plot.png: Correlation analysis between key variables.
+## 🧪 Analysis Methodology
 
-Total_Box_Plot.png / AE_Box.png / SE_Box.png: Comparative analysis of distributions across different urban categories.
+### Statistical Approach
+The analysis was conducted using R, focusing on exploratory data analysis (EDA) followed by formal statistical modeling. The workflow includes:
+* **Initial EDA:** Handled in `urban.Rmd` to identify outliers and distribution patterns.
+* **Refined Modeling:** Finalized in `Final_Urban_Influence.Rmd`, utilizing R-based modeling to generate core insights.
 
-Bar_Graph.png: Categorical breakdowns of the findings.
+### Visualization Strategy
+Data insights are communicated through a multi-modal visualization suite:
+* **Correlation:** Scatter plots to identify relationships between variables.
+* **Distribution:** Box plots (`AE_Box`, `SE_Box`, `Total_Box_Plot`) to compare distributions across urban categories.
+* **Density:** Heat maps to visualize spatial or correlation density within the data.
 
-# Technology Stack
-Language: R
+---
 
-Libraries (suggested): ggplot2, dplyr, tidyverse, rmarkdown
+## 📁 Repository Structure
+urban-influence-analysis/
+│
+├── Data/
+│   ├── urban.csv                 # Raw input data
+│   ├── final_urban_data.csv      # Cleaned/transformed dataset
+│   └── final_urban_data_2.csv    # Transformed dataset for final models
+│
+├── Analysis Scripts/
+│   ├── urban.Rmd                 # Initial Exploratory Data Analysis (EDA)
+│   └── Final_Urban_Influence.Rmd # Primary R Markdown with final models
+│
+├── Visualizations/
+│   ├── heat_map.png              # Spatial/correlation density map
+│   ├── Scatter_Plot.png          # Key variable correlation analysis
+│   ├── Total_Box_Plot.png        # General distribution overview
+│   ├── AE_Box.png                # Distribution of AE metrics
+│   ├── SE_Box.png                # Distribution of SE metrics
+│   └── Bar_Graph.png             # Categorical breakdown of findings
+│
+├── .gitignore
+└── README.md
+---
 
-# How to Run the Analysis
-Ensure you have R and RStudio installed.
+## 🛠️ Technology Stack
 
-Clone this repository.
+- **Language:** R
+- **Key Libraries:** `tidyverse`, `ggplot2`, `dplyr`, `rmarkdown`
+- **Environment:** RStudio
 
-Open Final_Urban_Influence.Rmd.
+---
 
-Run the code chunks or "Knit" the file to generate a full HTML/PDF report.
+## 🚀 How to Run the Analysis
+
+1. **Prerequisites:** Ensure you have R and RStudio installed on your machine.
+2. **Clone the Repository:**
+   ```bash
+   git clone [https://github.com/YOUR_USERNAME/urban-influence-analysis.git](https://github.com/YOUR_USERNAME/urban-influence-analysis.git)
+
+---
+
+## 📄 License
+Internal research project — Gordon College, 2026.
